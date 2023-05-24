@@ -1,0 +1,241 @@
+Guide to how to use orthofinder to do an orthologues annotation
+
+
+This is guide or tutorial focused on how to use orthofinder to annotate ortho-groups or gene families. The method was used for the paper titled: Sexual size dimorphism is associated with brain development gene family sizes in mammals. 
+
+
+Author of this text: Benjamin Padilla-Morales
+
+
+Step 1. Download the Genbank summary table
+
+
+Go to NCBI genomes download (FTP) website and then look for the assembly summary Genbank file.
+https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq/#asmsumfiles
+
+
+You need to download this list.
+https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
+
+
+Here you will find crucial data, such as the FTP web paths, taxid, organism name.
+We named the file as: assembly_summary_genbank.txt
+
+
+Step 2. Download the genomes from the FTP
+
+
+Then, after downloading the table and extracting the columns that you need we need to create a script to download them from the FTP database. 
+
+
+Files that we used:
+1.download_cds_translated_ftp_refseq_mammals_200816.sh
+
+
+Example of the script:
+The *_translated_cds.faa.gz is to download the file that contains the cds from each repository. We also used *_cds_from_genomic.fna.gz to download the nucleotide coded files. 
+------------------------------------------------------------------
+#!/bin/bash
+start=$(date +%s)
+#
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/004/115/215/GCF_004115215.1_mOrnAna1.p.v1/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/902/635/505/GCF_902635505.1_mSarHar1.11/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/208/655/GCF_000208655.1_Dasnov3.0/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/296/755/GCF_000296755.1_EriEur2.0/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/313/985/GCF_000313985.2_ASM31398v2/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/325/575/GCF_000325575.1_ASM32557v1/*_translated_cds.faa.gz
+wget        ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/001/466/805/GCF_001466805.2_Raegyp2.0/*_translated_cds.faa.gz
+#
+end=$(date +%s)
+seconds=$(echo "$end - $start" | bc)
+echo $seconds' sec'
+
+
+echo 'Formatted:'
+awk -v t=$seconds 'BEGIN{t=int(t*1000); printf "%d:%02d:%02d\n", t/3600000, t/60000%60, t/1000%60}'
+awk -v t=$seconds 'BEGIN{t=int(t*1000); printf "%d:%02d:%02d\n", t/3600000, t/60000%60, t/1000%60}' > time_download_ftp_mammals_ccds_translated_refseq.sh.txt
+------------------------------------------------------------------
+
+
+Then place the genomes in a directory where you can access them in the future. 
+
+
+Sometimes some genomes when downloaded are “corrupted”. So we recommend to download them again manually.  
+
+
+Step 3. Create correspondence tables for the genomes.
+
+
+From the assembly summary file (assembly_summary_genbank.txt) extract the taxid, ftp and organism name to paste them into a table. Take that table and in a different column and paste the extension of the files that you downloaded (e.g. _cds_from_genomic.fna.gz)
+
+
+Table name: 2.Index_146Mammals_namesSpp_to_CDSgenebank.txt
+
+
+
+
+Step 4. Renaming the sequences
+
+
+create a script using the matching names from the 2.Index_146Mammals_namesSpp_to_CDSgenebank.txt table. It can look something similar to this. 
+
+
+Example of how the script could look like: 
+------------------------------------------------------------------
+#!/bin/bash
+mv        GCF_000001405.39_GRCh38.p13_cds_from_genomic.fna        Homo_sapiens_nucl.fna
+mv        GCF_000001635.26_GRCm38.p6_cds_from_genomic.fna        Mus_musculus_nucl.fna
+mv        GCF_000001895.5_Rnor_6.0_cds_from_genomic.fna        Rattus_norvegicus_nucl.fna
+mv        GCF_000001905.1_Loxafr3.0_cds_from_genomic.fna        Loxodonta_africana_nucl.fna
+mv        GCF_000002265.2_Rn_Celera_cds_from_genomic.fna        Rattus_norvegicus_nucl.fna
+mv        GCF_000002285.3_CanFam3.1_cds_from_genomic.fna        Canis_lupus_familiaris_nucl.fna
+mv        GCF_000002295.2_MonDom5_cds_from_genomic.fna        Monodelphis_domestica_nucl.fna
+mv        GCF_000003025.6_Sscrofa11.1_cds_from_genomic.fna        Sus_scrofa_nucl.fna
+mv        GCF_000003625.3_OryCun2.0_cds_from_genomic.fna        Oryctolagus_cuniculus_nucl.fna
+mv        GCF_000147115.1_Myoluc2.0_cds_from_genomic.fna        Myotis_lucifugus_nucl.fna
+------------------------------------------------------------------
+
+
+Nothing very fancy as you can see. But make sure to keep both the originals sequences and the renamed ones. 
+
+
+We created a bash script named: 3.Script_changenames_CDSfiles_146sppMammals.sh
+
+
+After the sequences have a new name it's time to extract the names of the gene names to create a table of correspondence. 
+
+
+Let's use Samtools to extract and index.
+Example: (base) animazum@Alienware15R2:/media/animazum/Funegenelab/bpm29/Nucleotides_cds_from_genomic/genomes_renamed$ 4.Script_Extract_Indexes_faiFiles.sh
+
+
+Example of how the script could look like: 
+------------------------------------------------------------------
+#!/bin/bash
+samtools faidx Homo_sapiens.faa
+samtools faidx Mus_musculus.faa
+samtools faidx Rattus_norvegicus.faa
+samtools faidx Loxodonta_africana.faa
+samtools faidx Rattus_norvegicus.faa
+samtools faidx Canis_lupus_familiaris.faa
+samtools faidx Monodelphis_domestica.faa
+samtools faidx Sus_scrofa.faa
+samtools faidx Oryctolagus_cuniculus.faa
+------------------------------------------------------------------
+
+
+Now that we have an index for each genome we can address each sequence by name. But we need the information linked to each sequence. So we need to do some bash to extract it from the file. 
+
+
+Create a script that extracts with “grep” the data for each gene.
+
+
+Example:
+5.Script_extraction_geneData_cols_144spp.sh
+
+
+Example of how the script could look like:
+------------------------------------------------------------------
+grep -Eo 'gene=[[:alnum:]]*|protein_id=[^]]*|lcl[^[:blank:]]*|db_xref=[^]]*' Homo_sapiens_nucl.fna > Homo_sapiens_nucl_1.txt
+grep -Eo 'gene=[[:alnum:]]*|protein_id=[^]]*|lcl[^[:blank:]]*|db_xref=[^]]*' Mus_musculus_nucl.fna > Mus_musculus_nucl_1.txt
+grep -Eo 'gene=[[:alnum:]]*|protein_id=[^]]*|lcl[^[:blank:]]*|db_xref=[^]]*' Rattus_norvegicus_nucl.fna > Rattus_norvegicus_nucl_1.txt
+grep -Eo 'gene=[[:alnum:]]*|protein_id=[^]]*|lcl[^[:blank:]]*|db_xref=[^]]*' Loxodonta_africana_nucl.fna > Loxodonta_africana_nucl_1.txt
+grep -Eo 'gene=[[:alnum:]]*|protein_id=[^]]*|lcl[^[:blank:]]*|db_xref=[^]]*' Rattus_norvegicus_nucl.fna > Rattus_norvegicus_nucl_1.txt
+
+
+awk -v ADD="protein_id=NA" -v PATTERN1="db_xref=" -v PATTERN2="lcl[[:punct:]]" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Homo_sapiens_nucl_1.txt > Homo_sapiens_nucl_2.txt
+awk -v ADD="protein_id=NA" -v PATTERN1="db_xref=" -v PATTERN2="lcl[[:punct:]]" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Mus_musculus_nucl_1.txt > Mus_musculus_nucl_2.txt
+awk -v ADD="protein_id=NA" -v PATTERN1="db_xref=" -v PATTERN2="lcl[[:punct:]]" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Rattus_norvegicus_nucl_1.txt > Rattus_norvegicus_nucl_2.txt
+awk -v ADD="protein_id=NA" -v PATTERN1="db_xref=" -v PATTERN2="lcl[[:punct:]]" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Loxodonta_africana_nucl_1.txt > Loxodonta_africana_nucl_2.txt
+awk -v ADD="protein_id=NA" -v PATTERN1="db_xref=" -v PATTERN2="lcl[[:punct:]]" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Rattus_norvegicus_nucl_1.txt > Rattus_norvegicus_nucl_2.txt
+
+>[:num:]+
+awk -v ADD="gene=NA" -v PATTERN1="lcl[[:punct:]]" -v PATTERN2="db_xref=" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Homo_sapiens_nucl_2.txt> Homo_sapiens_nucl_3.txt
+awk -v ADD="gene=NA" -v PATTERN1="lcl[[:punct:]]" -v PATTERN2="db_xref=" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Mus_musculus_nucl_2.txt> Mus_musculus_nucl_3.txt
+awk -v ADD="gene=NA" -v PATTERN1="lcl[[:punct:]]" -v PATTERN2="db_xref=" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Rattus_norvegicus_nucl_2.txt> Rattus_norvegicus_nucl_3.txt
+awk -v ADD="gene=NA" -v PATTERN1="lcl[[:punct:]]" -v PATTERN2="db_xref=" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Loxodonta_africana_nucl_2.txt> Loxodonta_africana_nucl_3.txt
+awk -v ADD="gene=NA" -v PATTERN1="lcl[[:punct:]]" -v PATTERN2="db_xref=" 'L { print L; if((L ~ PATTERN1) && ($0 ~ PATTERN2)) print ADD }; { L=$0 } END { print L }' Rattus_norvegicus_nucl_2.txt> Rattus_norvegicus_nucl_3.txt
+
+
+
+
+awk 'ORS=NR%4?" ":"\n"' Homo_sapiens_nucl_3.txt> Homo_sapiens_nucl_df.txt
+awk 'ORS=NR%4?" ":"\n"' Mus_musculus_nucl_3.txt> Mus_musculus_nucl_df.txt
+awk 'ORS=NR%4?" ":"\n"' Rattus_norvegicus_nucl_3.txt> Rattus_norvegicus_nucl_df.txt
+awk 'ORS=NR%4?" ":"\n"' Loxodonta_africana_nucl_3.txt> Loxodonta_africana_nucl_df.txt
+awk 'ORS=NR%4?" ":"\n"' Rattus_norvegicus_nucl_3.txt> Rattus_norvegicus_nucl_df.txt
+
+
+rm *_1.txt
+rm *_2.txt
+rm *_3.txt
+------------------------------------------------------------------
+
+
+Now you should have a list with gene ID, protein ID and name inside the sequence with the suffix *_df.txt
+
+
+To create a file with an index of all the sequences that we will use later to filter genes and match them with gene IDs and other comparisons, we will need a script called: 6.Script_transform_index_columns.sh
+
+
+The script has the following code:
+awk '{print $1,$2,$3,$4}' *_df.txt > genomes_index_geneID.txt
+awk -v OFS="\t" '$1=$1' genomes_index_geneID.txt > genomes_index_geneID_tab.txt
+rm genomes_index_geneID.txt
+
+
+The script creates the file genomes_index_geneID_tab.txt that we will use in R in another moment.
+
+
+
+
+Step 5. Selecting the desired genes to use
+
+
+First, we are going to extract the largest sequences using samtools
+Script_extraction_Largest_Secs_Samtools.sh
+
+
+Example of the script:
+------------------------------------------------------------------
+#!/bin/bash
+# extraction of the selected genes
+xargs samtools faidx Acinonyx_jubatus.faa < Acinonyx_jubatus.faa.faiLS.txt > Acinonyx_jubatus.LS.fasta
+xargs samtools faidx Ailuropoda_melanoleuca.faa < Ailuropoda_melanoleuca.faa.faiLS.txt > Ailuropoda_melanoleuca.LS.fasta
+xargs samtools faidx Aotus_nancymaae.faa < Aotus_nancymaae.faa.faiLS.txt > Aotus_nancymaae.LS.fasta
+xargs samtools faidx Arvicanthis_niloticus.faa < Arvicanthis_niloticus.faa.faiLS.txt > Arvicanthis_niloticus.LS.fasta
+xargs samtools faidx Balaenoptera_acutorostrata_scammoni.faa < Balaenoptera_acutorostrata_scammoni.faa.faiLS.txt > Balaenoptera_acutorostrata_scammoni.LS.fasta
+------------------------------------------------------------------
+
+
+Then we are going to use an R script to only select the largest sequences. 
+Script_LargestSecs_Allsppecies.R
+
+
+With this script we selected the largest sequences. This script has controls to avoid selecting multiple proteins per gene. So only one gene per protein.
+
+
+We will have two files per spp as outputs. 
+Some examples of the files that will be created for the human:
+Homo_sapiens.faa.faiLS_table.csv
+Homo_sapiens.faa.faiLS.txt
+
+
+From the ccds fasta files extract the desired sequences based on the ccds id in the files ending with “faa.faiLS.txt”. 
+
+
+The script to extract the sequences from the original ccds:
+9.Script_extraction_Largest_Secs_Samtools.sh
+
+
+Then move all the fasta files were to a directory named Sequences_For_Orthofinder to keep them separated from other files.  
+
+
+Step 6. Run Orthofinder
+
+
+Use the next script to run orthofinder
+10.Script_orthofinder.sh
+
+
+Now you have to wait for your analysis to be done. :)
