@@ -30,10 +30,12 @@ Description: This directory provides scripts for two gene expression analyses. T
 
 Description: This section includes a script for conducting fold change analysis between adult males, adult females, and prenatal stages using average brain gene expression.
 
-Methods and Further Information
+-Methods and Further Information
+
 For detailed information about the methods and procedures used in this study, please refer to the "Methods" section of the article: "Reduced Sexual Size Dimorphism Shapes Brain Development Gene Family Sizes in Mammals."
 
-Data Sources
+-Data Sources
+
 The databases used for the analyses presented in this repository are obtained from the following sources:
 
 National Center for Biotechnology Information (NCBI) - https://www.ncbi.nlm.nih.gov/
