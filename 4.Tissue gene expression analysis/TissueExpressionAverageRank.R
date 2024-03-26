@@ -24,42 +24,48 @@ if (testtype == "negative") {
   log_print("Captain's log starts...")
   log_print("Using negatively selected genes", hide_notes = T)
   if (mono == "adult") {
-    fantom <- read.csv("YOUR/FANTOM5/data.csv") #Read in the fantom data
+    fantom <- read.csv("ADULT_UNIQUECOLs.rename.phatom data human.tissue.hCAGE.hg19.tpm.refgene.osc.csv") #Read in the fantom data
     log_print("Using Adult selected genes", hide_notes = T)
   } else if (mono == "fetus") {
-    fantomData<- read.csv("YOUR/FANTOM5/data.csv")
+    fantomData<- read.csv("~/Dropbox/SSD/sex_biased_genexpression/phatom/UNIQUECOLs.rename.phatom data human.tissue.hCAGE.hg19.tpm.refgene.osc.csv")
     feto<-grep(x = colnames(fantomData), pattern = "f_")
     fantom<- subset(fantomData, select = c(1,feto))
     log_print("Using fetous selected genes", hide_notes = T)
   }
   
-  pgls_background <- read.csv("NEGATIVES/background_genes_for_SSD_fromPGLS")#Read in all the genes entered to PGLS
+  # pgls_background <- read.csv("NEGATIVES/8669background_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in all the genes entered to PGLS
+  pgls_background <- read.csv("~/Dropbox/SSD/MANUSCRIPT/BG.DOS_negativePGLSgenes.csv")#Read in all the genes entered to PGLS
   
-  pgls_assoc <- read.csv("NEGATIVES/associated_genes_for_SSD_fromPGLS")#Read in PGLS Associated genes
+  pgls_assoc <- read.csv("NEGATIVES/738associated_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in PGLS Associated genes
   
-  pgls_notAssoc <- read.csv("NEGATIVES/associated_genes_for_SSD_fromPGLS")#Read in PGLS not associated genes
+  pgls_notAssoc <- read.csv("NEGATIVES/7931not-associated_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in PGLS not associated genes
   
 } else if (testtype == "positive") {
   log_print("Captain's log starts...")
   log_print("Using positively selected genes", hide_notes = T)
   if (mono == "adult") {
-    fantom <- read.csv("YOUR/FANTOM5/data.csv") #Read in the fantom data
+    fantom <- read.csv("ADULT_UNIQUECOLs.rename.phatom data human.tissue.hCAGE.hg19.tpm.refgene.osc.csv") #Read in the fantom data
     log_print("Using Adult selected genes", hide_notes = T)
   } else if (mono == "fetus") {
-    fantomData<- read.csv("YOUR/FANTOM5/data.csv")
+    fantomData<- read.csv("~/Dropbox/SSD/sex_biased_genexpression/phatom/UNIQUECOLs.rename.phatom data human.tissue.hCAGE.hg19.tpm.refgene.osc.csv")
     feto<-grep(x = colnames(fantomData), pattern = "f_")
     fantom<- subset(fantomData, select = c(1,feto))
     log_print("Using fetous selected genes", hide_notes = T)
   }
   
-  pgls_background <- read.csv("POSITIVES/background_genes_for_SSD_fromPGLS")#Read in all the genes entered to PGLS
+  # pgls_background <- read.csv("POSITIVES/8669background_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in all the genes entered to PGLS
+  pgls_background <- read.csv("~/Dropbox/SSD/MANUSCRIPT/BG.DOS_positivePGLSgenes.csv")#Read in all the genes entered to PGLS
   
-  pgls_assoc <- read.csv("POSITIVES/associated_genes_for_SSD_fromPGLS")#Read in PGLS Associated genes
+  pgls_assoc <- read.csv("POSITIVES/588associated_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in PGLS Associated genes
   
-  pgls_notAssoc <- read.csv("POSITIVES/not-associated_genes_for_SSD_fromPGLS")#Read in PGLS not associated genes
+  pgls_notAssoc <- read.csv("POSITIVES/8081not-associated_genes_for_SSD_fromPGLS_SSD+BM.csv")#Read in PGLS not associated genes
   
 }
 
+pgls_background<- data.frame(pgls_background[,3])
+colnames(pgls_background)<- "Gene.stable.ID"
+
+colnames(fantom)
 number_of_genes <- dim(pgls_assoc)[1] ##Change this
 #Filter FANTOM data to PGLS background genes
 fantom_background <- fantom[fantom$X %in% pgls_background$Gene.stable.ID ,]
@@ -74,7 +80,7 @@ fantom_background$total<-(rowSums(fantom_background))
 fantom_background<-fantom_background[!fantom_background$total == 0,]
 fantom_background$total <-NULL
 
-### creating the index column tio extract the genes from the back ground and use them in the analysis
+### creating the index column to extract the genes from the back ground and use them in the analysis
 rownames(pgls_assoc)<-pgls_assoc$Gene.stable.ID
 NEGgenes<-fantom_background[(rownames(fantom_background)) %in% rownames(pgls_assoc),]
 number_of_genes <- dim(NEGgenes)[1]
@@ -128,10 +134,42 @@ for (i in 1:dim(fantom_background)[1]) {
   }
 }
 
+##******* ************************************************###
+##*  
+# ... (Previous code remains unchanged until the permutation loop)
+
+# Bootstrap Approach
+B <- 5000  # Number of bootstrap samples
+
+# Create an empty dataframe to store bootstrap results
+bootstrap_results <- numeric(B)
+
+fantom_background<-fantom_background[(rownames(fantom_background)) %in% rownames(pgls_assoc),]
+
+for (b in 1:B) {
+  # Generate a bootstrap sample (with replacement) from the observed data for the selected tissue column
+  bootstrap_sample <- fantom_background[sample(nrow(fantom_background), replace = TRUE), tissueOFinterest]
+  
+  # Calculate the desired statistic or metric for the bootstrap sample (e.g., mean, median, sum)
+  # For example, calculating the mean expression for the bootstrap sample
+  bootstrap_sample_stat <- mean(bootstrap_sample)
+  
+  # Store the calculated statistic in the bootstrap_results vector
+  bootstrap_results[b] <- bootstrap_sample_stat
+}
+
+# Calculate the desired statistic for the bootstrap results (e.g., mean, median)
+bootstrap_statistic <- mean(bootstrap_results)  # Adjust this according to the desired metric
+
+# ... (Further code to log results and create plots)
+
+##******* ************************************************###
+
 #### real means
 BGlist<- list()
 for (i in 1:dim(NEGgenes)[1]) {
   NEGgenesR<- t(NEGgenes[i,])
+  ALLNEGgenesR<<-NEGgenesR
   Genename<- colnames(NEGgenesR)
   NEGgenesR[tissueOFinterest,]
   brainrank <- data.frame(sum(NEGgenesR[,1] < NEGgenesR[tissueOFinterest,]))
@@ -159,23 +197,44 @@ min(fa1RAvg)
 max(fa1RAvg)
 NEGgenesR
 log_print(paste(tissueOFinterest," tissue has an average rank bigger than random rank in :",
-                data.frame(sum(NEGgenesR > fa1RAvg)), "/", dim(fa1RAvg)[1], sep = ""), hide_notes = T)
+                data.frame(sum(NEGgenesR > fa1RAvg)), "/", dim(fa1RAvg)[1], ", p-value:",mean(fa1RAvg >= NEGgenesR),sep = ""), hide_notes = T)
 log_print(paste("Plot name: RankingAnalysis.",mono,".",testtype,".associated.genes.",tissueOFinterest,".tissue.pdf", sep = ""))
 
 log_close()
 writeLines(readLines(lf))
 
+##******* ************************************************###
+# Compare observed means with bootstrap means
+# Compare observed means with bootstrap means
+p_value <- sum(bootstrap_results > NEGgenesR) / B # Calculate p-value
+p_valueN <- sum(bootstrap_results < NEGgenesR) / B # Calculate p-value
+cat("Empirical p-value:, right side", p_value, "\n")
+cat("Empirical p-value, left side:", p_valueN, "\n")
+# ... (Further code to log results and create plots)
+
+##******* ************************************************###
 # hist(fa1RAvg$totalBrainAVG)
-
+bootstrap_results<- data.frame(bootstrap_results)
+colnames(bootstrap_results)<- "totalBrainAVG"
 ##### creating flot
-densidad<-density(fa1RAvg$totalBrainAVG)
-pdf(paste("RankingAnalysis.",mono,".",testtype,".associated.genes.",tissueOFinterest,".tissue.pdf", sep = ""))
-# Filled Density Plot
-p <- ggplot(fa1RAvg, aes(x=totalBrainAVG)) + 
-  geom_density() 
-# Add mean line
-p + scale_color_grey() + theme_classic() + geom_vline(aes(xintercept=NEGgenesR), 
-                                                      color="red", linetype="dashed", size=1) + scale_y_continuous(expand = c(0, 0), limits = c(0, max(densidad$y)+0.01)) + scale_x_continuous(expand = c(0, 0), limits = c(min(fa1RAvg)-0.2, max(fa1RAvg)+0.2))
 
+# Calculate density
+densidad <- density(bootstrap_results$totalBrainAVG)
+
+# Generate plot
+p <- ggplot(bootstrap_results, aes(x = totalBrainAVG)) + 
+  geom_density() +
+  scale_color_grey() +
+  theme_classic() +
+  geom_vline(aes(xintercept = NEGgenesR), color = "red", linetype = "dashed", linewidth = 1) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, max(densidad$y) + 0.01)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(min(bootstrap_results) - 20, max(bootstrap_results) + 10)) +
+  annotate("text", x = Inf, y = Inf, hjust = 1, vjust = 1, 
+           label = paste("Empirical p-value, right side:", p_value)) +
+  annotate("text", x = -Inf, y = Inf, hjust = 0, vjust = 1, 
+           label = paste("Empirical p-value, left side:", p_valueN))
+
+# Save plot to PDF
+pdf(paste("REV6RankingAnalysis.", mono, ".", testtype, ".associated.genes.", tissueOFinterest, ".tissue.pdf", sep = ""))
+print(p)
 dev.off()
-
