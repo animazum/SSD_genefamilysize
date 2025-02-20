@@ -6,9 +6,9 @@ This is guide or tutorial focused on how to use orthofinder to annotate ortho-gr
 
 Author of this text: Benjamin Padilla-Morales
 
-
+################################################
 Step 1. Download the Genbank summary table
-
+################################################
 
 Go to NCBI genomes download (FTP) website and then look for the assembly summary Genbank file.
 https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq/#asmsumfiles
@@ -21,9 +21,9 @@ https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.t
 Here you will find crucial data, such as the FTP web paths, taxid, organism name.
 We named the file as: assembly_summary_genbank.txt
 
-
+################################################
 Step 2. Download the genomes from the FTP
-
+################################################
 
 Then, after downloading the table and extracting the columns that you need we need to create a script to download them from the FTP database. 
 
@@ -62,9 +62,9 @@ Then place the genomes in a directory where you can access them in the future.
 
 Sometimes some genomes when downloaded are “corrupted”. So we recommend to download them again manually.  
 
-
+########################################################
 Step 3. Create correspondence tables for the genomes.
-
+########################################################
 
 From the assembly summary file (assembly_summary_genbank.txt) extract the taxid, ftp and organism name to paste them into a table. Take that table and in a different column and paste the extension of the files that you downloaded (e.g. _cds_from_genomic.fna.gz)
 
@@ -73,9 +73,9 @@ Table name: 2.Index_146Mammals_namesSpp_to_CDSgenebank.txt
 
 
 
-
+#################################
 Step 4. Renaming the sequences
-
+#################################
 
 create a script using the matching names from the 2.Index_146Mammals_namesSpp_to_CDSgenebank.txt table. It can look something similar to this. 
 
@@ -106,7 +106,8 @@ After the sequences have a new name it's time to extract the names of the gene n
 
 
 Let's use Samtools to extract and index.
-Example: (base) animazum@Alienware15R2:/media/animazum/Funegenelab/bpm29/Nucleotides_cds_from_genomic/genomes_renamed$ 4.Script_Extract_Indexes_faiFiles.sh
+4.Script_Extract_Indexes_faiFiles.sh
+Example: (base) animazum@Alienware15R2:/media/animazum/Funegenelab/bpm29/Nucleotides_cds_from_genomic/genomes_renamed$Script_Extract_Indexes_faiFiles.sh
 
 
 Example of how the script could look like: 
@@ -186,12 +187,12 @@ rm genomes_index_geneID.txt
 
 The script creates the file genomes_index_geneID_tab.txt that we will use in R in another moment.
 
-
+##################################################################
 Step 5. Identify the largest sequences that we will extract.
-
+##################################################################
 Then we are going to use an R script to identify and select the largest sequences. This script has controls to avoid selecting multiple proteins per gene. So only one gene per protein.
 
-Script_LargestSecs_Allsppecies.R
+7.Script_LargestSecs_Allsppecies.R
 
 We will have two files per spp as outputs. 
 Some examples of the files that will be created for the human:
@@ -202,14 +203,14 @@ Homo_sapiens.faa.faiLS.txt
 From the ccds fasta files extract the desired sequences based on the ccds id in the files ending with “faa.faiLS.txt”. 
 
 
-The script to extract the sequences from the original ccds:
 
+######################################################
 Step 6. Extract the largest sequences with Samtools
-
-9.Script_extraction_Largest_Secs_Samtools.sh
-
+######################################################
+The script to extract the sequences from the original ccds:
 First, we are going to extract the largest sequences using samtools
-Script_extraction_Largest_Secs_Samtools.sh
+
+8.Script_extraction_Largest_Secs_Samtools.sh
 
 
 Example of the script:
@@ -230,7 +231,7 @@ Step 7. Run Orthofinder
 
 
 Use the next script to run orthofinder
-10.Script_orthofinder.sh
+9.Script_orthofinder.sh
 
 
 Now you have to wait for your analysis to be done. :)
