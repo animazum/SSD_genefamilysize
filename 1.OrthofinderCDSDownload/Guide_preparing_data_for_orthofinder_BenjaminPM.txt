@@ -187,10 +187,26 @@ rm genomes_index_geneID.txt
 The script creates the file genomes_index_geneID_tab.txt that we will use in R in another moment.
 
 
+Step 5. Identify the largest sequences that we will extract.
+
+Then we are going to use an R script to identify and select the largest sequences. This script has controls to avoid selecting multiple proteins per gene. So only one gene per protein.
+
+Script_LargestSecs_Allsppecies.R
+
+We will have two files per spp as outputs. 
+Some examples of the files that will be created for the human:
+Homo_sapiens.faa.faiLS_table.csv
+Homo_sapiens.faa.faiLS.txt
 
 
-Step 5. Selecting the desired genes to use
+From the ccds fasta files extract the desired sequences based on the ccds id in the files ending with “faa.faiLS.txt”. 
 
+
+The script to extract the sequences from the original ccds:
+
+Step 6. Extract the largest sequences with Samtools
+
+9.Script_extraction_Largest_Secs_Samtools.sh
 
 First, we are going to extract the largest sequences using samtools
 Script_extraction_Largest_Secs_Samtools.sh
@@ -207,31 +223,10 @@ xargs samtools faidx Arvicanthis_niloticus.faa < Arvicanthis_niloticus.faa.faiLS
 xargs samtools faidx Balaenoptera_acutorostrata_scammoni.faa < Balaenoptera_acutorostrata_scammoni.faa.faiLS.txt > Balaenoptera_acutorostrata_scammoni.LS.fasta
 ------------------------------------------------------------------
 
-
-Then we are going to use an R script to only select the largest sequences. 
-Script_LargestSecs_Allsppecies.R
-
-
-With this script we selected the largest sequences. This script has controls to avoid selecting multiple proteins per gene. So only one gene per protein.
-
-
-We will have two files per spp as outputs. 
-Some examples of the files that will be created for the human:
-Homo_sapiens.faa.faiLS_table.csv
-Homo_sapiens.faa.faiLS.txt
-
-
-From the ccds fasta files extract the desired sequences based on the ccds id in the files ending with “faa.faiLS.txt”. 
-
-
-The script to extract the sequences from the original ccds:
-9.Script_extraction_Largest_Secs_Samtools.sh
-
-
 Then move all the fasta files were to a directory named Sequences_For_Orthofinder to keep them separated from other files.  
 
 
-Step 6. Run Orthofinder
+Step 7. Run Orthofinder
 
 
 Use the next script to run orthofinder
@@ -239,3 +234,6 @@ Use the next script to run orthofinder
 
 
 Now you have to wait for your analysis to be done. :)
+
+
+-----------
